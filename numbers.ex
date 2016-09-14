@@ -14,39 +14,70 @@ defmodule Numbers do
   The goal is to knock both the other player's hands to 0.
   """
 
-  defmodule Player do
-    defstruct left: 1, right: 1
-  end
-
   def play do
-    player_1 = %{left: 1, right: 1}
-    player_2 = %{left: 1, right: 1}
+    player = %{left: 1, right: 1}
 
-    turn(1, player_1, player_2)
+    players = %{1 => player, 2 => player}
+
+    winner = turn(
+      1,
+      players,
+      &interactive_player_direction/2,
+      &interactive_opponent_direction/2
+    )
+
+    IO.puts "Player #{winner} wins!"
   end
 
-  def turn(player, p1, p2) do
+  def turn(player_number, players, get_player_direction, get_opponent_direction) do
+    p1 = players[1]
+    p2 = players[2]
+    current_player = players[player_number]
+
     cond do
       lost?(p1) ->
-        IO.puts "Player 2 wins!"
+        2
       lost?(p2) ->
-        IO.puts "Player 1 wins!"
+        1
       true ->
-        IO.puts "Player 1: \n" <> render_hands(p1)
-        IO.puts "Player 2: \n" <> render_hands(p2)
+        player_direction = get_player_direction.(player_number, players)
+        opponent_direction = get_opponent_direction.(player_number, players)
 
-        IO.puts "Your move player #{player}"
-        player_direction = IO.gets "Your hand? "
-        opponent_direction = IO.gets "Opponent hand? "
+        next_number = next_player_number(player_number)
+        next_player = players[next_number]
 
-        player_direction = convert_direction(player_direction)
-        opponent_direction = convert_direction(opponent_direction)
+        updated_players =
+          %{}
+          |> Map.put(player_number, current_player)
+          |> Map.put(
+            next_number,
+            add_to_hand(next_player, opponent_direction, current_player[player_direction])
+          )
 
-        case player do
-          1 -> turn(2, p1, add_to_hand(p2, opponent_direction, p1[player_direction]))
-          2 -> turn(1, add_to_hand(p1, opponent_direction, p2[player_direction]), p2)
-        end
+        turn(next_number, updated_players, get_player_direction, get_opponent_direction)
     end
+  end
+
+  def next_player_number(1), do: 2
+  def next_player_number(2), do: 1
+
+  def interactive_player_direction(player_number, players) do
+    p1 = players[1]
+    p2 = players[2]
+
+    IO.puts "Player 1: \n" <> render_hands(p1)
+    IO.puts "Player 2: \n" <> render_hands(p2)
+
+    IO.puts "Your move player #{player_number}"
+    player_direction = IO.gets "Your hand? "
+
+    convert_direction(player_direction)
+  end
+
+  def interactive_opponent_direction(_player_number, _players) do
+    opponent_direction = IO.gets "Opponent hand? "
+
+    convert_direction(opponent_direction)
   end
 
   def convert_direction(direction) do
