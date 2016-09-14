@@ -1,4 +1,4 @@
-## Plays the Numbers hand game
+## Plays the Chopsticks hand game
 
 To play:
 `elixir -pr lib/play.ex -pr lib/engine.ex -e Numbers.Play.play`
