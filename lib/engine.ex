@@ -14,19 +14,30 @@ defmodule Numbers.Engine do
   The goal is to knock both the other player's hands to 0.
   """
 
-  def turn(player_number, players, get_player_direction, get_opponent_direction) do
+  @player %{left: 1, right: 1}
+  @players %{1 => @player, 2 => @player}
+
+  @doc """
+  Play a game of Chopsticks, passing in the number of turns and function to get the move.
+  """
+  def play(turns, get_move) do
+    turn(turns, 1, @players, get_move)
+  end
+
+  def turn(turns_left, player_number, players, get_move) do
     p1 = players[1]
     p2 = players[2]
     current_player = players[player_number]
 
     cond do
+      turns_left == 0 ->
+        0
       lost?(p1) ->
         2
       lost?(p2) ->
         1
       true ->
-        player_direction = get_player_direction.(player_number, players)
-        opponent_direction = get_opponent_direction.(player_number, players)
+        {player_direction, opponent_direction} = get_move.(player_number, players)
 
         next_number = next_player_number(player_number)
         next_player = players[next_number]
@@ -39,7 +50,7 @@ defmodule Numbers.Engine do
             add_to_hand(next_player, opponent_direction, current_player[player_direction])
           )
 
-        turn(next_number, updated_players, get_player_direction, get_opponent_direction)
+        turn(turns_left - 1, next_number, updated_players, get_move)
     end
   end
 

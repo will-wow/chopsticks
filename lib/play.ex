@@ -2,21 +2,18 @@ defmodule Numbers.Play do
   alias Numbers.Engine
 
   def play do
-    player = %{left: 1, right: 1}
-
-    players = %{1 => player, 2 => player}
-
-    winner = Engine.turn(
-      1,
-      players,
-      &interactive_player_direction/2,
-      &interactive_opponent_direction/2
+    winner = Engine.play(
+      20,
+      &get_move/2,
     )
 
-    IO.puts "Player #{winner} wins!"
+    case winner do
+      0 -> IO.puts "Tie game!"
+      winner -> IO.puts "Player #{winner} wins!"
+    end
   end
 
-  def interactive_player_direction(player_number, players) do
+  def get_move(player_number, players) do
     p1 = players[1]
     p2 = players[2]
 
@@ -25,14 +22,9 @@ defmodule Numbers.Play do
 
     IO.puts "Your move player #{player_number}"
     player_direction = IO.gets "Your hand? "
-
-    convert_direction(player_direction)
-  end
-
-  def interactive_opponent_direction(_player_number, _players) do
     opponent_direction = IO.gets "Opponent hand? "
 
-    convert_direction(opponent_direction)
+    {convert_direction(player_direction), convert_direction(opponent_direction)}
   end
 
   def convert_direction(direction) do
