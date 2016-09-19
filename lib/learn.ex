@@ -30,10 +30,10 @@ defmodule Numbers.Learn.Generator do
   end
 
   def won(pid, player_number) do
-    last_count = GenServer.call(pid, {:win, player_number})
+    win = GenServer.call(pid, {:win, player_number})
     GenServer.stop(pid)
 
-    last_count
+    win
   end
 
   def tied(pid) do
@@ -45,9 +45,17 @@ defmodule Numbers.Learn.Generator do
   end
 
   # Sever
-  def handle_cast({:turn, %{player_number: player_number} = data}, state) do
-    # Don't double store the player_number
-    record = Map.delete(data, :player_number)
+  def handle_cast({:turn, %{player_direction: player_direction,
+                            opponent_direction: opponent_direction,
+                            player_number: player_number,
+                            player: player,
+                            opponent: opponent}}, state) do
+    record = %{
+      player: normalize_player(player),
+      opponent: normalize_player(opponent),
+      from: player[player_direction],
+      to: opponent[opponent_direction]
+    }
 
     state = Map.update!(state, player_number, fn
        state -> [record | state]
@@ -57,9 +65,14 @@ defmodule Numbers.Learn.Generator do
   end
 
   def handle_call({:win, player_number}, _from, records) do
-    {:reply, length(records[player_number]), records}
-    # Because puts isn't doing what I want
-    throw {:count, length(records[player_number])}
+    {:reply, records[player_number], nil}
+  end
+
+  defp normalize_player(player) do
+    player
+    |> Map.values
+    |> Enum.sort
+    |> List.to_tuple
   end
 end
 
@@ -71,7 +84,31 @@ defmodule Numbers.Learn do
   alias Numbers.Engine
   alias Numbers.Learn.Generator
 
-  def play do
+  def play, do: play(10, [])
+
+  def play(0, wins) do
+    wins
+    |> List.flatten
+    |> Enum.reduce(%{}, fn
+    %{
+      player: player,
+      opponent: opponent,
+      from: from,
+      to: to
+    }, acc ->
+        # Use these as keys for later lookup.
+        game_state = {player, opponent}
+        move = {from, to}
+
+        # Each game state should have an array of moves, with a count of each move.
+        Map.update(acc, game_state, %{move => 1}, fn moves ->
+          Map.update(moves, move, 1, &(&1 + 1))
+        end)
+    end)
+    |> throw
+  end
+
+  def play(i, wins) do
     {:ok, pid} = Generator.start_link
 
     winner = Engine.play(
@@ -82,10 +119,11 @@ defmodule Numbers.Learn do
     case winner do
       0 ->
         Generator.tied(pid)
-        play
+        # Ignore this iteration
+        play(i, wins)
       winner ->
-        turn_count = Generator.won(pid, winner)
-        IO.puts "Player #{winner} wins, with #{turn_count} moves!"
+        win = Generator.won(pid, winner)
+        play(i - 1, [win | wins])
     end
   end
 
