@@ -17,8 +17,8 @@ defmodule Numbers.Learn.Generator do
     next_number = Engine.next_player_number(player_number)
     opponent = players[next_number]
 
-    player_direction = random_direction
-    opponent_direction = random_direction
+    player_direction = random_direction(player)
+    opponent_direction = random_direction(opponent)
 
     GenServer.cast(pid, {:turn, %{player_direction: player_direction,
                                   opponent_direction: opponent_direction,
@@ -40,7 +40,9 @@ defmodule Numbers.Learn.Generator do
     GenServer.stop(pid)
   end
 
-  defp random_direction do
+  defp random_direction(%{left: 0, right: _right}), do: :right
+  defp random_direction(%{left: _left, right: 0}), do: :left
+  defp random_direction(_player) do
     Enum.random([:left, :right])
   end
 
