@@ -4,7 +4,7 @@ defmodule Numbers.Play do
   def play do
     winner = Engine.play(
       20,
-      &get_move/2,
+      &get_move/2
     )
 
     case winner do
