@@ -1,7 +1,7 @@
 ## Plays the Chopsticks hand game
 
 To play:
-`elixir -pr lib/play.ex -pr lib/engine.ex -e Numbers.Play.play`
+`mix run -e Numbers.Play.play`
 
 Rules:
 - Each player starts with 1 of 5 possible fingers up on each hand.
