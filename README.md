@@ -1,7 +1,10 @@
 ## Plays the Chopsticks hand game
 
-To play:
+To play against another human:
 `mix run -e Numbers.Play.play`
+
+To play against the computer:
+`mix run -e Numbers.Learn.play`
 
 Rules:
 - Each player starts with 1 of 5 possible fingers up on each hand.

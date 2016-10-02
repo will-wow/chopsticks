@@ -85,10 +85,62 @@ defmodule Numbers.Learn do
 
   alias Numbers.Engine
   alias Numbers.Learn.Generator
+  alias Numbers.Play
 
-  def play, do: play(10, [])
+  def play do
+    learnings = learn
+    IO.inspect(learnings)
 
-  def play(0, wins) do
+    Engine.play(20, &Play.get_move/2, &(pick_move(learnings, &1, &2)))
+  end
+
+  def pick_move(learnings, player_number, players) do
+    player = players[player_number]
+    next_number = Engine.next_player_number(player_number)
+    opponent = players[next_number]
+
+    learnings[{player, opponent}]
+    |> split_out_moves
+    |> convert_to_directions
+  end
+
+  @doc """
+  Take the frequencies of moves and turn them into a frequency table.
+  """
+  def split_out_moves(nil), do: []
+  def split_out_moves(candidates), do: split_out_moves(Map.to_list(candidates), [])
+  def split_out_moves([], freq_table), do: freq_table
+  def split_out_moves([{move, frequency} | candidates], freq_table) do
+    freq_table = Range.new(1, frequency)
+    |> Enum.reduce(freq_table, &([move | &1]))
+
+    split_out_moves(candidates, freq_table)
+  end
+
+  def convert_to_directions([]), do: {:left, :left}
+  def convert_to_directions(freq_table, player, opponent) do
+    {player_value, opponent_value} = Enum.random(freq_table)
+
+    {
+      convert_to_direction(player_value, player),
+      convert_to_direction(opponent_value, opponent)
+    }
+  end
+
+  def convert_to_direction(value, player) do
+    if player.left === value do
+      :left
+    else
+      :right
+    end
+  end
+
+  @doc """
+  Learn from playing some random trials.
+  """
+  def learn, do: learn(10, [])
+
+  def learn(0, wins) do
     wins
     |> List.flatten
     |> Enum.reduce(%{}, fn
@@ -107,10 +159,9 @@ defmodule Numbers.Learn do
           Map.update(moves, move, 1, &(&1 + 1))
         end)
     end)
-    |> throw
   end
 
-  def play(i, wins) do
+  def learn(i, wins) do
     {:ok, pid} = Generator.start_link
 
     winner = Engine.play(
@@ -122,10 +173,10 @@ defmodule Numbers.Learn do
       0 ->
         Generator.tied(pid)
         # Ignore this iteration
-        play(i, wins)
+        learn(i, wins)
       winner ->
         win = Generator.won(pid, winner)
-        play(i - 1, [win | wins])
+        learn(i - 1, [win | wins])
     end
   end
 

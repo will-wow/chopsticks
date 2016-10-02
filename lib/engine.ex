@@ -20,11 +20,11 @@ defmodule Numbers.Engine do
   @doc """
   Play a game of Chopsticks, passing in the number of turns and function to get the move.
   """
-  def play(turns, get_move) do
-    turn(turns, 1, @players, get_move)
+  def play(turns, get_move, get_move_2 \\ nil) do
+    turn(turns, 1, @players, get_move, get_move_2 || get_move)
   end
 
-  def turn(turns_left, player_number, players, get_move) do
+  def turn(turns_left, player_number, players, get_move, get_move_2) do
     p1 = players[1]
     p2 = players[2]
     current_player = players[player_number]
@@ -50,7 +50,7 @@ defmodule Numbers.Engine do
             add_to_hand(next_player, opponent_direction, current_player[player_direction])
           )
 
-        turn(turns_left - 1, next_number, updated_players, get_move)
+        turn(turns_left - 1, next_number, updated_players, get_move_2, get_move)
     end
   end
 
