@@ -20,14 +20,20 @@ defmodule Numbers.Engine do
   @doc """
   Play a game of Chopsticks, passing in the number of turns and function to get the move.
   """
-  def play(turns, get_move, get_move_2 \\ nil) do
-    turn(turns, 1, @players, get_move, get_move_2 || get_move)
+  def play(turns, callbacks) do
+    get_move = callbacks[:get_move]
+    get_move_2 = callbacks[:get_move_2] || callbacks[:get_move]
+    display_error = callbacks[:display_error] || fn _ -> nil end
+
+    turn(turns, 1, @players, get_move, get_move_2, display_error)
   end
 
-  def turn(turns_left, player_number, players, get_move, get_move_2) do
+  def turn(turns_left, player_number, players, get_move, get_move_2, display_error) do
     p1 = players[1]
     p2 = players[2]
-    current_player = players[player_number]
+    player = players[player_number]
+
+    IO.inspect players
 
     cond do
       turns_left == 0 ->
@@ -37,22 +43,93 @@ defmodule Numbers.Engine do
       lost?(p2) ->
         1
       true ->
-        {player_direction, opponent_direction} = get_move.(player_number, players)
+        opponent_number = next_player_number(player_number)
+        opponent = players[opponent_number]
 
-        next_number = next_player_number(player_number)
-        next_player = players[next_number]
+        case get_move.(player_number, players) do
+          {:quit, nil} ->
+            # When a player quits, the other player wins.
+            opponent_number
+          {move_type, move} ->
+            case do_turn(move_type, player, opponent, move) do
+              {:error, code} ->
+                # For errors, display the error, then re-run the turn.
+                display_error.(code)
+                turn(turns_left, player_number, players, get_move, get_move_2, display_error)
+              {:ok, player, opponent} ->
+                # For valid turns, update the players, and run the next turn.
+                updated_players =
+                  %{}
+                  |> Map.put(player_number, player)
+                  |> Map.put(opponent_number, opponent)
 
-        updated_players =
-          %{}
-          |> Map.put(player_number, current_player)
-          |> Map.put(
-            next_number,
-            add_to_hand(next_player, opponent_direction, current_player[player_direction])
-          )
-
-        turn(turns_left - 1, next_number, updated_players, get_move_2, get_move)
+                turn(turns_left - 1, opponent_number, updated_players, get_move_2, get_move, display_error)
+            end
+        end
     end
   end
+
+  def do_turn(move_type, player, opponent, moves) do
+    case move_type do
+      :touch -> touch_turn(player, opponent, moves)
+      :split -> split_turn(player, opponent)
+      type ->
+        IO.puts type
+        {:error, :unknown_move_type}
+    end
+  end
+
+  def touch_turn(player, opponent, {player_direction, opponent_direction}) do
+    case validate_touch(player, opponent, player_direction, opponent_direction) do
+      {:error, code} ->
+        {:error, code}
+      {:ok} ->
+        {
+          :ok,
+          player,
+          add_to_hand(opponent, opponent_direction, player[player_direction])
+        }
+    end
+  end
+
+  def split_turn(player, opponent) do
+    case validate_split(player) do
+      {:error, code} ->
+        {:error, code}
+      {:ok} ->
+        {:ok, split(player), opponent}
+    end
+  end
+
+  def validate_touch(player, opponent, player_direction, opponent_direction) do
+    cond do
+      player[player_direction] === 0 -> {:error, :empty_player_hand}
+      opponent[opponent_direction] === 0 -> {:error, :empty_opponent_hand}
+      true -> {:ok}
+    end
+  end
+
+  def validate_split(player) do
+    cond do
+      !(empty_hand?(player.left) || empty_hand?(player.right)) -> {:error, :no_empty_hand}
+      !(splitable_hand?(player.left) || splitable_hand?(player.right)) -> {:error, :no_even_hand}
+      true -> {:ok}
+    end
+  end
+
+  def empty_hand?(0), do: true
+  def empty_hand?(_), do: false
+
+  def splitable_hand?(hand) do
+    rem(hand, 2) === 0
+  end
+
+  def split(player) do
+    {_, hand} = Enum.find(player, fn {_, hand} -> splitable_hand?(hand) end)
+    %{left: split_hand(hand), right: split_hand(hand)}
+  end
+
+  def split_hand(hand), do: round(hand / 2)
 
   def next_player_number(1), do: 2
   def next_player_number(2), do: 1

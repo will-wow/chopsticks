@@ -17,16 +17,26 @@ defmodule Numbers.Learn.Generator do
     next_number = Engine.next_player_number(player_number)
     opponent = players[next_number]
 
-    player_direction = random_direction(player)
-    opponent_direction = random_direction(opponent)
+    {type, data} = move = random_move(player, opponent)
 
-    GenServer.cast(pid, {:turn, %{player_direction: player_direction,
-                                  opponent_direction: opponent_direction,
-                                  player_number: player_number,
-                                  player: player,
-                                  opponent: opponent}})
+    case type do
+      :split ->
+        GenServer.cast(pid, {:turn, %{type: :split,
+                                      player_number: player_number,
+                                      player: player,
+                                      opponent: opponent}})
+      :touch ->
+        {player_direction, opponent_direction} = data
 
-    {player_direction, opponent_direction}
+        GenServer.cast(pid, {:turn, %{type: :touch,
+                                      player_direction: player_direction,
+                                      opponent_direction: opponent_direction,
+                                      player_number: player_number,
+                                      player: player,
+                                      opponent: opponent}})
+    end
+
+    move
   end
 
   def won(pid, player_number) do
@@ -40,6 +50,25 @@ defmodule Numbers.Learn.Generator do
     GenServer.stop(pid)
   end
 
+  def random_move(player, opponent) do
+    case random_move_type(player) do
+      :split ->
+        {:split, nil}
+      :touch ->
+        player_direction = random_direction(player)
+        opponent_direction = random_direction(opponent)
+
+        {:touch, {player_direction, opponent_direction}}
+    end
+  end
+
+  defp random_move_type(player) do
+    case Engine.validate_split(player) do
+      {:ok} -> Enum.random([:split, :touch])
+      {:error, _code} -> :touch
+    end
+  end
+
   defp random_direction(%{left: 0, right: _right}), do: :right
   defp random_direction(%{left: _left, right: 0}), do: :left
   defp random_direction(_player) do
@@ -47,16 +76,27 @@ defmodule Numbers.Learn.Generator do
   end
 
   # Sever
-  def handle_cast({:turn, %{player_direction: player_direction,
-                            opponent_direction: opponent_direction,
+  def handle_cast({:turn, %{type: type,
                             player_number: player_number,
                             player: player,
-                            opponent: opponent}}, state) do
+                            opponent: opponent} = data}, state) do
+
+    move =
+      case type do
+        :touch ->
+          %{
+            from: player[data.player_direction],
+            to: opponent[data.opponent_direction]
+          }
+        :split ->
+          nil
+      end
+
     record = %{
+      type: type,
       player: normalize_player(player),
       opponent: normalize_player(opponent),
-      from: player[player_direction],
-      to: opponent[opponent_direction]
+      move: move
     }
 
     state = Map.update!(state, player_number, fn
@@ -70,6 +110,7 @@ defmodule Numbers.Learn.Generator do
     {:reply, records[player_number], nil}
   end
 
+  # Normalizes a player map to be a list of the two hands, in value order.
   defp normalize_player(player) do
     player
     |> Map.values
@@ -85,55 +126,6 @@ defmodule Numbers.Learn do
 
   alias Numbers.Engine
   alias Numbers.Learn.Generator
-  alias Numbers.Play
-
-  def play do
-    learnings = learn
-    IO.inspect(learnings)
-
-    Engine.play(20, &Play.get_move/2, &(pick_move(learnings, &1, &2)))
-  end
-
-  def pick_move(learnings, player_number, players) do
-    player = players[player_number]
-    next_number = Engine.next_player_number(player_number)
-    opponent = players[next_number]
-
-    learnings[{player, opponent}]
-    |> split_out_moves
-    |> convert_to_directions
-  end
-
-  @doc """
-  Take the frequencies of moves and turn them into a frequency table.
-  """
-  def split_out_moves(nil), do: []
-  def split_out_moves(candidates), do: split_out_moves(Map.to_list(candidates), [])
-  def split_out_moves([], freq_table), do: freq_table
-  def split_out_moves([{move, frequency} | candidates], freq_table) do
-    freq_table = Range.new(1, frequency)
-    |> Enum.reduce(freq_table, &([move | &1]))
-
-    split_out_moves(candidates, freq_table)
-  end
-
-  def convert_to_directions([]), do: {:left, :left}
-  def convert_to_directions(freq_table, player, opponent) do
-    {player_value, opponent_value} = Enum.random(freq_table)
-
-    {
-      convert_to_direction(player_value, player),
-      convert_to_direction(opponent_value, opponent)
-    }
-  end
-
-  def convert_to_direction(value, player) do
-    if player.left === value do
-      :left
-    else
-      :right
-    end
-  end
 
   @doc """
   Learn from playing some random trials.
@@ -144,15 +136,15 @@ defmodule Numbers.Learn do
     wins
     |> List.flatten
     |> Enum.reduce(%{}, fn
-    %{
-      player: player,
-      opponent: opponent,
-      from: from,
-      to: to
-    }, acc ->
+      %{
+        type: type,
+        player: player,
+        opponent: opponent,
+        move: move_data
+      }, acc ->
         # Use these as keys for later lookup.
         game_state = {player, opponent}
-        move = {from, to}
+        move = {type, move_data}
 
         # Each game state should have an array of moves, with a count of each move.
         Map.update(acc, game_state, %{move => 1}, fn moves ->
@@ -166,7 +158,12 @@ defmodule Numbers.Learn do
 
     winner = Engine.play(
       20,
-      fn player_number, players -> Generator.take_turn(pid, player_number, players) end
+      get_move: fn player_number, players ->
+        Generator.take_turn(pid, player_number, players)
+      end,
+      display_error: fn code ->
+        raise code
+      end
     )
 
     case winner do

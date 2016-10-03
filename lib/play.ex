@@ -4,7 +4,8 @@ defmodule Numbers.Play do
   def play do
     winner = Engine.play(
       20,
-      &get_move/2
+      get_move: &get_move/2,
+      display_error: &display_error/1
     )
 
     case winner do
@@ -21,11 +22,28 @@ defmodule Numbers.Play do
     IO.puts "Player 2: \n" <> render_hands(p2)
 
     IO.puts "Your move player #{player_number}"
-    player_direction = IO.gets "Your hand? "
-    opponent_direction = IO.gets "Opponent hand? "
 
-    {convert_direction(player_direction), convert_direction(opponent_direction)}
+    case String.trim(IO.gets "Do you want to touch, split, or quit? ") do
+      "touch" ->
+        player_direction = IO.gets "Your hand? "
+        opponent_direction = IO.gets "Opponent hand? "
+
+        {:touch, {convert_direction(player_direction), convert_direction(opponent_direction)}}
+      "split" ->
+        {:split, nil}
+      "quit" ->
+        {:quit, nil}
+      bad ->
+        IO.puts bad
+        {:bad, nil}
+    end
   end
+
+  def display_error(:unknown_move_type), do: IO.puts("I'm not sure what you want to do.")
+  def display_error(:empty_player_hand), do: IO.puts("You can't pass from an empty hand.")
+  def display_error(:empty_opponent_hand), do: IO.puts("You can't touch an empty hand.")
+  def display_error(:no_empty_hand), do: IO.puts("You can only split when one had is empty.")
+  def display_error(:no_even_hand), do: IO.puts("You can only split from an even hand.")
 
   def convert_direction(direction) do
     direction = String.trim(direction)
