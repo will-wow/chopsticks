@@ -1,5 +1,5 @@
-defmodule Numbers.Play do
-  alias Numbers.Engine
+defmodule Chopsticks.Play do
+  alias Chopsticks.Engine
 
   def play do
     winner = Engine.play(

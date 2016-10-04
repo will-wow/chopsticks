@@ -1,10 +1,11 @@
-defmodule Numbers.Learn.Generator do
+defmodule Chopsticks.Learn.Generator do
   @moduledoc """
   GenServer for generating and remembering moves.
   """
 
   use GenServer
-  alias Numbers.Engine
+  alias Chopsticks.Engine
+  alias Chopsticks.Random
 
   # Client
 
@@ -17,7 +18,7 @@ defmodule Numbers.Learn.Generator do
     next_number = Engine.next_player_number(player_number)
     opponent = players[next_number]
 
-    {type, data} = move = random_move(player, opponent)
+    {type, data} = move = Random.random_move(player, opponent)
 
     case type do
       :split ->
@@ -48,31 +49,6 @@ defmodule Numbers.Learn.Generator do
 
   def tied(pid) do
     GenServer.stop(pid)
-  end
-
-  def random_move(player, opponent) do
-    case random_move_type(player) do
-      :split ->
-        {:split, nil}
-      :touch ->
-        player_direction = random_direction(player)
-        opponent_direction = random_direction(opponent)
-
-        {:touch, {player_direction, opponent_direction}}
-    end
-  end
-
-  defp random_move_type(player) do
-    case Engine.validate_split(player) do
-      {:ok} -> Enum.random([:split, :touch])
-      {:error, _code} -> :touch
-    end
-  end
-
-  defp random_direction(%{left: 0, right: _right}), do: :right
-  defp random_direction(%{left: _left, right: 0}), do: :left
-  defp random_direction(_player) do
-    Enum.random([:left, :right])
   end
 
   # Sever
@@ -119,13 +95,13 @@ defmodule Numbers.Learn.Generator do
   end
 end
 
-defmodule Numbers.Learn do
+defmodule Chopsticks.Learn do
   @moduledoc """
   Functions for learning how to play Chopsticks.
   """
 
-  alias Numbers.Engine
-  alias Numbers.Learn.Generator
+  alias Chopsticks.Engine
+  alias Chopsticks.Learn.Generator
 
   @doc """
   Learn from playing some random trials.

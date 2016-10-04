@@ -1,6 +1,6 @@
 require IEx
 
-defmodule Numbers.Engine do
+defmodule Chopsticks.Engine do
   @moduledoc """
   Functions for playing the numbers hand game.
 

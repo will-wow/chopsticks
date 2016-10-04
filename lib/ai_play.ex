@@ -1,11 +1,12 @@
-defmodule Numbers.AiPlay do
+defmodule Chopsticks.AiPlay do
   @moduledoc """
   Play against the AI.
   """
 
-  alias Numbers.Learn
-  alias Numbers.Engine
-  alias Numbers.Play
+  alias Chopsticks.Random
+  alias Chopsticks.Learn
+  alias Chopsticks.Engine
+  alias Chopsticks.Play
 
   def play do
     learnings = Learn.learn
@@ -31,7 +32,7 @@ defmodule Numbers.AiPlay do
 
     case move do
       nil ->
-        Learn.Generator.random_move(player, opponent)
+        Random.random_move(player, opponent)
       {:touch, move} ->
         {:touch, convert_to_directions(move, player, opponent)}
       {:split, nil} ->
@@ -54,8 +55,8 @@ defmodule Numbers.AiPlay do
 
   def convert_to_directions([], player, opponent) do
     {
-      Generator.random_move(player),
-      Generator.random_move(opponent)
+      Random.random_direction(player),
+      Random.random_direction(opponent)
     }
   end
 
