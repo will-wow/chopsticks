@@ -35,6 +35,7 @@ defmodule Chopsticks.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:phoenix_ecto, "~> 3.0.1"},
      {:gettext, "~> 0.11"},
-     {:cowboy, "~> 1.0"}]
+     {:cowboy, "~> 1.0"},
+     {:poison, "~> 2.2.0"}]
   end
 end

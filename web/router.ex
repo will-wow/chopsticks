@@ -10,13 +10,19 @@ defmodule Chopsticks.Router do
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    # plug :accepts, ["json"]
   end
 
   scope "/", Chopsticks do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+  end
+
+  scope "/api", Chopsticks do
+    pipe_through :api
+
+    get "/play", GameController, :play
   end
 
   # Other scopes may use custom stacks.

@@ -52,6 +52,10 @@ defmodule Chopsticks.Engine do
     end
   end
 
+  def starting_state(turns) do
+    %{turns_left: turns, next_player: 1, players: @players}
+  end
+
   @doc """
   Play a game of Chopsticks, passing in the number of turns and function to get the move.
   """
@@ -61,7 +65,7 @@ defmodule Chopsticks.Engine do
     display_error = callbacks[:display_error] || fn _ -> nil end
 
     play_turn(
-      %{turns_left: turns, next_player: 1, players: @players},
+      starting_state(turns),
       get_move,
       get_move_2,
       display_error
