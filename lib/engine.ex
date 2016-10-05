@@ -18,6 +18,41 @@ defmodule Chopsticks.Engine do
   @players %{1 => @player, 2 => @player}
 
   @doc """
+  Take a single turn, returning the new game state.
+  """
+  def turn(%{players: players, turns_left: turns_left, next_player: player_number}, move) do
+    case update_players(player_number, players, move) do
+      {:ok, players} ->
+        # If there was a move, check if it finished the game.
+        case check_for_win(players) do
+          0 ->
+            if turns_left === 1 do
+              {:done, %{players: players,
+                        winner: 0,
+                        turns_left: 0}}
+            else
+              {:ok, %{players: players,
+                      turns_left: turns_left - 1,
+                      next_player: next_player_number(player_number)}}
+            end
+          winner ->
+            {:done, %{players: players,
+                      winner: winner,
+                      turns_left: turns_left - 1}}
+        end
+      {:quit, players, winner} ->
+        {:done, %{players: players,
+                  winner: winner,
+                  turns_left: turns_left}}
+      {:error, players, code} ->
+        {:error, %{players: players,
+                   error_code: code,
+                   next_player: player_number,
+                   turns_left: turns_left}}
+    end
+  end
+
+  @doc """
   Play a game of Chopsticks, passing in the number of turns and function to get the move.
   """
   def play(turns, callbacks) do
@@ -25,57 +60,67 @@ defmodule Chopsticks.Engine do
     get_move_2 = callbacks[:get_move_2] || callbacks[:get_move]
     display_error = callbacks[:display_error] || fn _ -> nil end
 
-    turn(turns, 1, @players, get_move, get_move_2, display_error)
+    play_turn(
+      %{turns_left: turns, next_player: 1, players: @players},
+      get_move,
+      get_move_2,
+      display_error
+    )
   end
 
-  def turn(turns_left, player_number, players, get_move, get_move_2, display_error) do
-    p1 = players[1]
-    p2 = players[2]
-    player = players[player_number]
+  # A recursive turn.
+  defp play_turn(
+    %{next_player: player_number, players: players} = game_state,
+    get_move,
+    get_move_2,
+    display_error
+  ) do
+    move = get_move.(player_number, players)
 
-    IO.inspect players
-
-    cond do
-      turns_left == 0 ->
-        0
-      lost?(p1) ->
-        2
-      lost?(p2) ->
-        1
-      true ->
-        opponent_number = next_player_number(player_number)
-        opponent = players[opponent_number]
-
-        case get_move.(player_number, players) do
-          {:quit, nil} ->
-            # When a player quits, the other player wins.
-            opponent_number
-          {move_type, move} ->
-            case do_turn(move_type, player, opponent, move) do
-              {:error, code} ->
-                # For errors, display the error, then re-run the turn.
-                display_error.(code)
-                turn(turns_left, player_number, players, get_move, get_move_2, display_error)
-              {:ok, player, opponent} ->
-                # For valid turns, update the players, and run the next turn.
-                updated_players =
-                  %{}
-                  |> Map.put(player_number, player)
-                  |> Map.put(opponent_number, opponent)
-
-                turn(turns_left - 1, opponent_number, updated_players, get_move_2, get_move, display_error)
-            end
-        end
+    case turn(game_state, move) do
+      {:ok, game_state} ->
+        play_turn(game_state, get_move_2, get_move, display_error)
+      {:error, %{error_code: error_code} = game_state} ->
+        # For errors, display the error, then re-run the turn.
+        display_error.(error_code)
+        play_turn(game_state, get_move, get_move_2, display_error)
+      {:done, %{winner: winner}} ->
+        # For a finished game, just return.
+        winner
     end
   end
 
-  def do_turn(move_type, player, opponent, moves) do
-    case move_type do
-      :touch -> touch_turn(player, opponent, moves)
-      :split -> split_turn(player, opponent)
-      type ->
-        IO.puts type
-        {:error, :unknown_move_type}
+  def update_players(player_number, players, {type, move}) do
+    player = players[player_number]
+    opponent_number = next_player_number(player_number)
+    opponent = players[opponent_number]
+
+    result =
+      case type do
+        :quit ->
+          # When a player quits, the other player wins.
+          {:quit}
+        :touch ->
+          touch_turn(player, opponent, move)
+        :split ->
+          split_turn(player, opponent)
+        unknown_type ->
+          IO.puts unknown_type
+          {:error, :unknown_move_type}
+      end
+
+    case result do
+      {:error, code} ->
+        {:error, players, code}
+      {:ok, player, opponent} ->
+        updated_players =
+          %{}
+          |> Map.put(player_number, player)
+          |> Map.put(opponent_number, opponent)
+
+        {:ok, updated_players}
+      {:quit} ->
+        {:quit, players, opponent_number}
     end
   end
 
@@ -150,6 +195,14 @@ defmodule Chopsticks.Engine do
       new_count > 5 -> new_count - 5
       new_count === 5 -> 0
       true -> new_count
+    end
+  end
+
+  def check_for_win(players) do
+    cond do
+      lost?(players[1]) -> 2
+      lost?(players[2]) -> 1
+      true -> 0
     end
   end
 

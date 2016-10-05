@@ -17,7 +17,8 @@ defmodule Chopsticks.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Chopsticks, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext]]
+     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :phoenix_ecto,
+                    :cowboy, :logger, :gettext]]
   end
 
   # Specifies which paths to compile per environment.
@@ -32,6 +33,7 @@ defmodule Chopsticks.Mixfile do
      {:phoenix_pubsub, "~> 1.0"},
      {:phoenix_html, "~> 2.6"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
+     {:phoenix_ecto, "~> 3.0.1"},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"}]
   end
