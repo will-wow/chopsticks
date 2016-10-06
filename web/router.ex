@@ -23,6 +23,7 @@ defmodule Chopsticks.Router do
     pipe_through :api
 
     get "/play", GameController, :play
+    post "/turn", GameController, :turn
   end
 
   # Other scopes may use custom stacks.
