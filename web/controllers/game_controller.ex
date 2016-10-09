@@ -20,7 +20,7 @@ defmodule Chopsticks.GameController do
       {:ok, state} ->
         ai_move(conn, state)
       {:error, state} ->
-        render_state(conn, state, 400)
+        render_state(conn, state)
       {:done, state} ->
         render_state(conn, state)
     end
@@ -34,7 +34,7 @@ defmodule Chopsticks.GameController do
     
     case new_state do
       {:error, state} ->
-        render_state(conn, state, 400)
+        render_state(conn, state)
       {_code, state} ->
         render_state(conn, state)
     end

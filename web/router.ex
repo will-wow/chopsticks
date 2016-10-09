@@ -10,7 +10,7 @@ defmodule Chopsticks.Router do
   end
 
   pipeline :api do
-    # plug :accepts, ["json"]
+    plug :accepts, ["json"]
   end
 
   scope "/", Chopsticks do
@@ -25,9 +25,4 @@ defmodule Chopsticks.Router do
     get "/play", GameController, :play
     post "/turn", GameController, :turn
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", Chopsticks do
-  #   pipe_through :api
-  # end
 end

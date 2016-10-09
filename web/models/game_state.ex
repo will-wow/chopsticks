@@ -1,6 +1,4 @@
 defmodule Chopsticks.GameState do
-  alias Chopsticks.Player
-
   defstruct [:players, :turns_left, :next_player, :winner, :error_code]
 
   def decode(game_state) do
