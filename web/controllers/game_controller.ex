@@ -8,6 +8,10 @@ defmodule Chopsticks.GameController do
   alias Chopsticks.Move
   alias Chopsticks.GameState
 
+  def play(conn, %{"easy" => "true"}) do
+    render_state(conn, Engine.starting_state(20, true))
+  end
+
   def play(conn, _) do
     render_state(conn, Engine.starting_state(20))
   end
@@ -29,7 +33,7 @@ defmodule Chopsticks.GameController do
   end
 
   def ai_move(conn, game_state) do
-    learnings = Learn.learn
+    learnings = Learn.learn(if game_state.dumb, do: 5, else: 100)
     ai_move = AiPlay.pick_move(game_state, learnings)
     new_state = Engine.turn(game_state, ai_move)
     

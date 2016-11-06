@@ -1,5 +1,5 @@
 defmodule Chopsticks.GameState do
-  defstruct [:players, :turns_left, :next_player, :winner, :error_code]
+  defstruct [:players, :turns_left, :next_player, :winner, :error_code, :dumb]
 
   def decode(game_state) do
     game_state

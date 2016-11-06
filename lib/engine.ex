@@ -20,7 +20,7 @@ defmodule Chopsticks.Engine do
   @doc """
   Take a single turn, returning the new game state.
   """
-  def turn(%{players: players, turns_left: turns_left, next_player: player_number}, move) do
+  def turn(%{players: players, turns_left: turns_left, next_player: player_number, dumb: dumb}, move) do
     case update_players(player_number, players, move) do
       {:ok, players} ->
         # If there was a move, check if it finished the game.
@@ -29,31 +29,36 @@ defmodule Chopsticks.Engine do
             if turns_left === 1 do
               {:done, %{players: players,
                         winner: 0,
-                        turns_left: 0}}
+                        turns_left: 0,
+                        dumb: dumb}}
             else
               {:ok, %{players: players,
                       turns_left: turns_left - 1,
-                      next_player: next_player_number(player_number)}}
+                      next_player: next_player_number(player_number),
+                      dumb: dumb}}
             end
           winner ->
             {:done, %{players: players,
                       winner: winner,
-                      turns_left: turns_left - 1}}
+                      turns_left: turns_left - 1,
+                      dumb: dumb}}
         end
       {:quit, players, winner} ->
         {:done, %{players: players,
                   winner: winner,
-                  turns_left: turns_left}}
+                  turns_left: turns_left,
+                  dumb: dumb}}
       {:error, players, code} ->
         {:error, %{players: players,
                    error_code: code,
                    next_player: player_number,
-                   turns_left: turns_left}}
+                   turns_left: turns_left,
+                   dumb: dumb}}
     end
   end
 
-  def starting_state(turns) do
-    %{turns_left: turns, next_player: 1, players: @players}
+  def starting_state(turns, dumb \\ false) do
+    %{turns_left: turns, next_player: 1, players: @players, dumb: dumb}
   end
 
   @doc """
