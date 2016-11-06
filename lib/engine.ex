@@ -98,7 +98,6 @@ defmodule Chopsticks.Engine do
     player = players[player_number]
     opponent_number = next_player_number(player_number)
     opponent = players[opponent_number]
-
     result =
       case type do
         :quit ->
@@ -109,6 +108,7 @@ defmodule Chopsticks.Engine do
         :split ->
           split_turn(player, opponent)
         unknown_type ->
+          IO.puts "unknown_type"
           IO.puts unknown_type
           {:error, :unknown_move_type}
       end
@@ -169,6 +169,7 @@ defmodule Chopsticks.Engine do
   def empty_hand?(0), do: true
   def empty_hand?(_), do: false
 
+  def splitable_hand?(0), do: false
   def splitable_hand?(hand) do
     rem(hand, 2) === 0
   end

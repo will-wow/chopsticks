@@ -1,3 +1,5 @@
+require IEx
+
 defmodule Chopsticks.GameController do
   use Chopsticks.Web, :controller
   alias Chopsticks.AiPlay
@@ -28,6 +30,7 @@ defmodule Chopsticks.GameController do
 
   def ai_move(conn, game_state) do
     learnings = Learn.learn
+    IO.puts("BEFORE AI MOVE:")
     IO.inspect(game_state)
     ai_move = AiPlay.pick_move(game_state, learnings)
     new_state = Engine.turn(game_state, ai_move)

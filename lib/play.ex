@@ -34,6 +34,7 @@ defmodule Chopsticks.Play do
       "quit" ->
         {:quit, nil}
       bad ->
+        IO.puts "bad"
         IO.puts bad
         {:bad, nil}
     end
