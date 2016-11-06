@@ -106,7 +106,7 @@ defmodule Chopsticks.Learn do
   @doc """
   Learn from playing some random trials.
   """
-  def learn, do: learn(10, [])
+  def learn, do: learn(100, [])
 
   def learn(0, wins) do
     wins
