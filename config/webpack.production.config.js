@@ -17,7 +17,7 @@ module.exports = {
   // Where you want the output to go
   output: {
     path: DIST_DIR,
-    filename: '[name]-[hash].min.js',
+    filename: '[name].min.js',
     publicPath: '/'
   },
   resolve: {
@@ -25,14 +25,6 @@ module.exports = {
     extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
   },
   plugins: [
-    // handles creating an index.html file and injecting assets. necessary because assets
-    // change name because the hash part changes. We want hash name changes to bust cache
-    // on client browsers.
-    new HtmlWebpackPlugin({
-      template: path.join(SOURCE_DIR, 'index.tpl.html'),
-      inject: 'body',
-      filename: 'index.html'
-    }),
     // webpack gives your modules and chunks ids to identify them. Webpack can vary the
     // distribution of the ids to get the smallest id length for often used ids with
     // this plugin
@@ -40,7 +32,7 @@ module.exports = {
     // extracts the css from the js files and puts them on a separate .css file. this is for
     // performance and is used in prod environments. Styles load faster on their own .css
     // file as they dont have to wait for the JS to load.
-    new ExtractTextPlugin('[name]-[hash].min.css'),
+    new ExtractTextPlugin('[name].min.css'),
     // handles uglifying js
     new webpack.optimize.UglifyJsPlugin({
       compressor: {

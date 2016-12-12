@@ -10,19 +10,18 @@
 
     <title>Hello Chopsticks!</title>
 
-    <%= if Mix.env == :dev do %>
-    <% else %>
-      <script src="<%= static_path(@conn, "/main.css") %>"></script>
+    <%= if Mix.env != :dev do %>
+      <script src="<%= static_path(@conn, "/main.min.css") %>"></script>
     <% end %>
 </head>
 
 <body class="view-login">
-  <div id="root"></div>
+  <%= render @view_module, @view_template, assigns %>
 
   <%= if Mix.env == :dev do %>
     <script src='http://localhost:4001/main.js'></script>
   <% else %>
-    <script src="<%= static_path(@conn, "/main.js") %>"></script>
+    <script src="<%= static_path(@conn, "/main.min.js") %>"></script>
   <% end %>
 </body>
 </html>

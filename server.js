@@ -3,6 +3,7 @@ var WebpackDevServer = require('webpack-dev-server');
 var config = require('./config/webpack.config');
 
 var app = new WebpackDevServer(webpack(config), {
+  contentBase: 'http://localhost:4001',
   publicPath: config.output.publicPath,
   hot: true,
   historyApiFallback: true,
@@ -25,10 +26,10 @@ var app = new WebpackDevServer(webpack(config), {
 
 app.use(require('cors')());
 
-app.listen(4001, 'localhost', function (err) {
-    if (err) {
-        console.log(err);
-    }
+app.listen(4001, '0.0.0.0', function (err) {
+  if (err) {
+    console.log(err);
+  }
 
   console.log('Listening at localhost:4001');
 });

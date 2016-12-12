@@ -4,7 +4,8 @@
     "**/node_modules": true,
     "**/priv/gettext": true,
     "**/priv/static": true,
-    "**/deps": true
+    "**/deps": true,
+    "**/_build": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib"
 }

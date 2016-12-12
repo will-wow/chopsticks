@@ -4,13 +4,14 @@ var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
+var publicPath = 'http://localhost:4001';
 var SOURCE_DIR = path.join(__dirname, '../web/static/');
 var DIST_DIR = path.join(__dirname, '../priv/static/');
 
 module.exports = {
   devtool: 'eval-source-map',
   entry: [
-    'webpack-dev-server/client?http://localhost:4001',
+    'webpack-dev-server/client?' + publicPath,
     'webpack/hot/only-dev-server',
     'react-hot-loader/patch',
     path.join(SOURCE_DIR, 'index.tsx')
@@ -18,18 +19,13 @@ module.exports = {
   output: {
     path: DIST_DIR,
     filename: '[name].js',
-    publicPath: '/'
+    publicPath: publicPath + '/'
   },
   resolve: {
     // Add .ts
     extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(SOURCE_DIR, 'index.tpl.html'),
-      inject: 'body',
-      filename: 'index.html'
-    }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
