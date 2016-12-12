@@ -1,0 +1,15 @@
+// Do this first, since it includes foundation overrides.
+@import './variables/index';
+// Foundation
+@import 'foundation-sites/scss/foundation';
+@include foundation-everything;
+
+@import './components/index';
+
+html {
+  background-image: url(../img/bosphorus.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: top right;
+}

@@ -1,0 +1,15 @@
+{
+  "node": true,
+  "browser": true,
+  "predef": [
+    "inject"
+  ],
+  "curly": false,
+  "eqeqeq": true,
+  "eqnull": true,
+  "forin":true,
+  "latedef":"nofunc",
+  "nonbsp":true,
+  "browserify":true,
+  "devel":true
+}
