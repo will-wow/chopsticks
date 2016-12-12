@@ -4,32 +4,25 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Play the chopsticks hand game.">
+    <meta name="author" content="Will Ockelmann-Wagner">
+    <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
 
     <title>Hello Chopsticks!</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-  </head>
 
-  <body>
-    <div class="container">
-      <header class="header">
-        <nav role="navigation">
-          <ul class="nav nav-pills pull-right">
-            <li><a href="http://www.phoenixframework.org/docs">Get Started</a></li>
-          </ul>
-        </nav>
-        <span class="logo"></span>
-      </header>
+    <%= if Mix.env == :dev do %>
+    <% else %>
+      <script src="<%= static_path(@conn, "/main.css") %>"></script>
+    <% end %>
+</head>
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+<body class="view-login">
+  <div id="root"></div>
 
-      <main role="main">
-        <%= render @view_module, @view_template, assigns %>
-      </main>
-
-    </div> <!-- /container -->
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-  </body>
+  <%= if Mix.env == :dev do %>
+    <script src='http://localhost:4001/main.js'></script>
+  <% else %>
+    <script src="<%= static_path(@conn, "/main.js") %>"></script>
+  <% end %>
+</body>
 </html>

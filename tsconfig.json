@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./static",
-    "rootDir": "./web/static",
-    "sourceRoot": "./web/static",
+    "rootDir": "web/static",
+    "sourceRoot": "web/static",
     "sourceMap": true,
     "noImplicitAny": false,
     "module": "commonjs",
@@ -10,8 +10,11 @@
     "target": "es2015",
     "jsx": "react"
   },
+  "include": [
+    "web/static/**/*"
+  ],
   "exclude": [
     "node_modules",
-    "web/static"
+    "static"
   ]
 }

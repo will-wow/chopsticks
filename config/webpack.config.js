@@ -10,7 +10,7 @@ var DIST_DIR = path.join(__dirname, '../priv/static/');
 module.exports = {
   devtool: 'eval-source-map',
   entry: [
-    'webpack-dev-server/client?http://localhost:3000',
+    'webpack-dev-server/client?http://localhost:4001',
     'webpack/hot/only-dev-server',
     'react-hot-loader/patch',
     path.join(SOURCE_DIR, 'index.tsx')
