@@ -5,7 +5,7 @@ defmodule Chopsticks.GameView do
     game_state
     # Translate the players map from {1 => player, 2 => opponent} to [player, opponent]
     |> Map.update!(:players, fn players ->
-      [players[1], players[2]]
+      %{"1" => players[1], "2" => players[2]}
     end)
   end
 end

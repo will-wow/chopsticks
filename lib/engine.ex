@@ -20,7 +20,7 @@ defmodule Chopsticks.Engine do
   @doc """
   Take a single turn, returning the new game state.
   """
-  def turn(%{players: players, turns_left: turns_left, next_player: player_number}, move) do
+  def turn(%{players: players, turns_left: turns_left, next_player: player_number, dumb: dumb}, move) do
     case update_players(player_number, players, move) do
       {:ok, players} ->
         # If there was a move, check if it finished the game.
@@ -29,31 +29,36 @@ defmodule Chopsticks.Engine do
             if turns_left === 1 do
               {:done, %{players: players,
                         winner: 0,
-                        turns_left: 0}}
+                        turns_left: 0,
+                        dumb: dumb}}
             else
               {:ok, %{players: players,
                       turns_left: turns_left - 1,
-                      next_player: next_player_number(player_number)}}
+                      next_player: next_player_number(player_number),
+                      dumb: dumb}}
             end
           winner ->
             {:done, %{players: players,
                       winner: winner,
-                      turns_left: turns_left - 1}}
+                      turns_left: turns_left - 1,
+                      dumb: dumb}}
         end
       {:quit, players, winner} ->
         {:done, %{players: players,
                   winner: winner,
-                  turns_left: turns_left}}
+                  turns_left: turns_left,
+                  dumb: dumb}}
       {:error, players, code} ->
         {:error, %{players: players,
                    error_code: code,
                    next_player: player_number,
-                   turns_left: turns_left}}
+                   turns_left: turns_left,
+                   dumb: dumb}}
     end
   end
 
-  def starting_state(turns) do
-    %{turns_left: turns, next_player: 1, players: @players}
+  def starting_state(turns, dumb \\ false) do
+    %{turns_left: turns, next_player: 1, players: @players, dumb: dumb}
   end
 
   @doc """
@@ -98,7 +103,6 @@ defmodule Chopsticks.Engine do
     player = players[player_number]
     opponent_number = next_player_number(player_number)
     opponent = players[opponent_number]
-
     result =
       case type do
         :quit ->
@@ -109,6 +113,7 @@ defmodule Chopsticks.Engine do
         :split ->
           split_turn(player, opponent)
         unknown_type ->
+          IO.puts "unknown_type"
           IO.puts unknown_type
           {:error, :unknown_move_type}
       end
@@ -169,6 +174,7 @@ defmodule Chopsticks.Engine do
   def empty_hand?(0), do: true
   def empty_hand?(_), do: false
 
+  def splitable_hand?(0), do: false
   def splitable_hand?(hand) do
     rem(hand, 2) === 0
   end

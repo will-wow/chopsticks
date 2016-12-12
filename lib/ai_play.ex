@@ -15,12 +15,22 @@ defmodule Chopsticks.AiPlay do
     Engine.play(
       20,
       get_move: &Play.get_move/2,
-      get_move_2: &(pick_move(learnings, &1, &2)),
+      get_move_2: fn player_number, players ->
+        pick_move(
+          %{next_player: player_number,
+            players: players},
+          learnings
+        )
+      end,
       display_error: &Play.display_error/1
     )
   end
 
-  def pick_move(learnings, player_number, players) do
+  def pick_move(
+    %{next_player: player_number,
+      players: players},
+    learnings
+  ) do
     player = players[player_number]
     next_number = Engine.next_player_number(player_number)
     opponent = players[next_number]
