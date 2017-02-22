@@ -8,11 +8,13 @@ defmodule Chopsticks.AiPlay do
   alias Chopsticks.Engine
   alias Chopsticks.Play
 
+  @doc """
+  Kick off a game with the AI.
+  """
   def play do
     learnings = Learn.learn
-    IO.inspect(learnings)
 
-    Engine.play(
+    winner = Engine.play(
       20,
       get_move: &Play.get_move/2,
       get_move_2: fn player_number, players ->
@@ -24,6 +26,13 @@ defmodule Chopsticks.AiPlay do
       end,
       display_error: &Play.display_error/1
     )
+
+
+    case winner do
+      0 -> IO.puts "Tie game!"
+      1 -> IO.puts "You beat the robot! Humanity is safe. For now."
+      2 -> IO.puts "The robot beat you! The age of humanity draws to a close."
+    end
   end
 
   def pick_move(
@@ -44,14 +53,14 @@ defmodule Chopsticks.AiPlay do
       nil ->
         Random.random_move(player, opponent)
       {:touch, move} ->
-        {:touch, convert_to_directions(move, player, opponent)}
+        {:touch, pick_move(move, player, opponent)}
       {:split, nil} ->
         {:split, nil}
     end
   end
 
   @doc """
-  Take the frequencies of moves and turn them into a frequency table.
+  take the frequencies of moves and turn them into a frequency table.
   """
   def split_out_moves(nil), do: [nil]
   def split_out_moves(candidates), do: split_out_moves(Map.to_list(candidates), [])
@@ -63,14 +72,19 @@ defmodule Chopsticks.AiPlay do
     split_out_moves(candidates, freq_table)
   end
 
-  def convert_to_directions([], player, opponent) do
+
+  @doc """
+  Pick a move from the frequency table.
+  """
+  def pick_move([], player, opponent) do
+    # Pick a ranom move if there's nothing in the learnings.
     {
       Random.random_direction(player),
       Random.random_direction(opponent)
     }
   end
 
-  def convert_to_directions(freq_table, player, opponent) do
+  def pick_move(freq_table, player, opponent) do
     {player_value, opponent_value} = Enum.random(freq_table)
 
     {
@@ -79,6 +93,9 @@ defmodule Chopsticks.AiPlay do
     }
   end
 
+  @doc """
+  Convert a recorded move to a direction for the current situation.
+  """
   def convert_to_direction(value, player) do
     if player.left === value do
       :left

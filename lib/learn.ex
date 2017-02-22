@@ -76,7 +76,7 @@ defmodule Chopsticks.Learn.Generator do
     }
 
     state = Map.update!(state, player_number, fn
-       state -> [record | state]
+      state -> [record | state]
     end)
 
     {:noreply, state}
@@ -128,6 +128,7 @@ defmodule Chopsticks.Learn do
           Map.update(moves, move, 1, &(&1 + 1))
         end)
     end)
+    |> IO.inspect
   end
 
   def learn(i, wins) do
