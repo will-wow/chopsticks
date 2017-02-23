@@ -20,40 +20,11 @@ defmodule Chopsticks.Engine do
   @doc """
   Take a single turn, returning the new game state.
   """
-  def turn(%{players: players, turns_left: turns_left, next_player: player_number, dumb: dumb}, move) do
+  def turn(%{players: players, turns_left: turns_left, next_player: player_number, dumb: dumb} = game_state, move) do
     case update_players(player_number, players, move) do
-      {:ok, players} ->
-        # If there was a move, check if it finished the game.
-        case check_for_win(players) do
-          0 ->
-            if turns_left === 1 do
-              {:done, %{players: players,
-                        winner: 0,
-                        turns_left: 0,
-                        dumb: dumb}}
-            else
-              {:ok, %{players: players,
-                      turns_left: turns_left - 1,
-                      next_player: next_player_number(player_number),
-                      dumb: dumb}}
-            end
-          winner ->
-            {:done, %{players: players,
-                      winner: winner,
-                      turns_left: turns_left - 1,
-                      dumb: dumb}}
-        end
-      {:quit, players, winner} ->
-        {:done, %{players: players,
-                  winner: winner,
-                  turns_left: turns_left,
-                  dumb: dumb}}
-      {:error, players, code} ->
-        {:error, %{players: players,
-                   error_code: code,
-                   next_player: player_number,
-                   turns_left: turns_left,
-                   dumb: dumb}}
+      {:ok, players} -> update_ok_game_state(game_state, players)
+      {:quit, players, winner} -> update_quit_game_state(game_state, players, winner)
+      {:error, players, code} -> update_error_game_state(game_state, players, code)
     end
   end
 
@@ -218,5 +189,49 @@ defmodule Chopsticks.Engine do
 
   def lost?(player) do
     player.left === 0 && player.right === 0
+  end
+  
+  defp update_ok_game_state(game_state, updated_players) do
+    # If there was a move, check if it finished the game.
+    case check_for_win(updated_players) do
+      0 -> update_continue_game_state(game_state, updated_players)
+      winner -> update_win_game_state(game_state, updated_players, winner)
+    end
+  end
+
+  defp update_continue_game_state(%{turns_left: turns_left, next_player: player_number, dumb: dumb}, players) do
+    if turns_left === 1 do
+      {:done, %{players: players,
+        winner: 0,
+        turns_left: 0,
+        dumb: dumb}}
+    else
+      {:ok, %{players: players,
+        turns_left: turns_left - 1,
+        next_player: next_player_number(player_number),
+        dumb: dumb}}
+    end
+  end
+
+  defp update_win_game_state(%{turns_left: turns_left, next_player: player_number, dumb: dumb}, players, winner) do
+    {:done, %{players: players,
+      winner: winner,
+      turns_left: turns_left - 1,
+      dumb: dumb}}
+  end
+
+  defp update_quit_game_state(%{turns_left: turns_left, next_player: player_number, dumb: dumb}, players, winner) do
+    {:done, %{players: players,
+      winner: winner,
+      turns_left: turns_left,
+      dumb: dumb}}
+  end
+
+  defp update_error_game_state(%{players: players, turns_left: turns_left, next_player: player_number, dumb: dumb}, players, code) do
+    {:error, %{players: players,
+      error_code: code,
+      next_player: player_number,
+      turns_left: turns_left,
+      dumb: dumb}}
   end
 end

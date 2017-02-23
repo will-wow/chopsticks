@@ -27,7 +27,6 @@ defmodule Chopsticks.AiPlay do
       display_error: &Play.display_error/1
     )
 
-
     case winner do
       0 -> IO.puts "Tie game!"
       1 -> IO.puts "You beat the robot! Humanity is safe. For now."
